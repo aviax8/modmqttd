@@ -929,7 +929,7 @@ Register values are defined as R0..Rn variables.
       - `uint32be(R0, R1)`: Cast to unsigned integer _ABCD_ from `R0` == _BA_ and `R1` == _DA_.
       - `flt32(R0, R1)`:    Cast to float _ABCD_ from `R0` == _AB_ and `R1` == _CD_.
       - `flt32be(R0, R1)`:  Cast to float _ABCD_ from `R0` == _BA_ and `R1` == _DC_.
-      - switch ```(R0, R1)``` arguments to ```(R1, R0)``` to reorder words in the resulting value
+      - switch `(R0, R1)` arguments to `(R1, R0)` to reorder words in the resulting value
 
     &nbsp;
 
@@ -950,12 +950,17 @@ Register values are defined as _R0..R9_ variables.
       - [Lua expression](https://www.lua.org) (required)
         - expression can use _R0..R9_ as register variables
         - expression must return _numeric_, _boolean_ or _string_ value
-        - e.g. ```converter: lua.evaluate("return string.format('%04X', R0)")```
+        - e.g. `converter: lua.evaluate("return string.format('%04X', R0)")`
       - precision (optional, ignored for _string_ and _boolean_ return types)
 
     &nbsp;
 
     The same custom functions for 32-bit numbers described in Exprtk converter are supported in the Lua expression.
+
+    Moreover the following additional custom functions are supported in the expression.
+      - `bit_positions(uint64_number, lsb_base)`: Return a comma-separated list of bit positions set to 1 in uint64_number.
+        - e.g. `converter: lua.evaluate("return bit_positions(6)")` returns "1,2"
+        - optional `lsb_base` defines LSB base added to bit positions, `converter: lua.evaluate("return bit_positions(6, 2)")` returns "3,4"
 
 #### Examples
 

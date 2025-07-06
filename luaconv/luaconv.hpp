@@ -90,6 +90,7 @@ public:
         mLua.set_function("flt32",    flt32);
         mLua.set_function("flt32be",  flt32be);
         mLua.set_function("int16",    int16);
+        mLua.set_function("bit_positions", bit_positions);
 
         // pre-register variables R0 to R9 with zero value
         for (int i = 0; i < MAX_REGISTERS; i++) {
@@ -152,6 +153,22 @@ private:
     static double int16(double val) {
         uint16_t tmp = uint16_t(val);
         return static_cast<int16_t>(tmp);
+    }
+
+    /// Return a comma-separated list of bit positions set to 1 in the argument.
+    /// E.g. for bit_positions(6) returns "1,2"
+    /// E.g. for bit_positions(6, 1) returns "2,3"
+    static std::string bit_positions(uint64_t value, int lsb_base = 0) {
+        std::string result;
+        while (value != 0) {
+            unsigned bit = std::countr_zero(value);
+            if (!result.empty()) {
+                result += ",";
+            }
+            result += std::to_string(bit + lsb_base);
+            value &= ~(uint64_t(1) << bit);
+        }
+        return result;
     }
 
 };
