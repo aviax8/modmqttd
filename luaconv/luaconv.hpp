@@ -165,7 +165,7 @@ private:
             if (!result.empty()) {
                 result += ",";
             }
-            result += std::to_string(bit + lsb_base);
+            result += std::to_string(static_cast<int>(bit) + lsb_base);
             value &= ~(uint64_t(1) << bit);
         }
         return result;
