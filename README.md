@@ -22,6 +22,7 @@ Main features:
   * single register value to MQTT converters
   * multiple registers values to single MQTT value converters
   * support for [exprtk](https://github.com/ArashPartow/exprtk) expressions language when converting data
+  * support for [Lua](https://www.lua.org) expressions language when converting data
   * support for custom conversion plugins
   * support for conversion in both directions
 * Fast modbus frequency polling, configurable per newtork, per mqtt object and per register
@@ -82,6 +83,7 @@ Cameron Desrochers. See license terms in [LICENSE.md](readerwriterqueue/LICENSE.
    1. yaml-cpp
    1. rapidJSON
    1. exprtk (optional, for exprtk expressions language support in yaml declarations)
+   1. lua + sol2 (for Lua expressions language support in yaml declarations)
    1. Catch2 (optional, for unit tests)
 
 1. Configure and build project:
@@ -936,6 +938,26 @@ Register values are defined as R0..Rn variables.
     If modbus register contains signed integer data, you can use this cast in the expression:
 
       - `int16(R0)`: Cast uint16 value from `R0' to int16
+
+### Lua converter.
+
+Lua converter allows to use Lua expression language to convert register data to mqtt value.
+Register values are defined as _R0..R9_ variables.
+
+  * **evaluate**
+
+    Usage: state
+
+    Arguments:
+      - [Lua expression](https://www.lua.org) (required)
+        - expression can use _R0..R9_ as register variables
+        - expression must return _numeric_, _boolean_ or _string_ value
+        - e.g. ```converter: lua.evaluate("return string.format('%04X', R0)")```
+      - precision (optional, ignored for _string_ and _boolean_ return types)
+
+    &nbsp;
+
+    The same custom functions for 32-bit numbers described in Exprtk converter are supported in the Lua expression.
 
 #### Examples
 

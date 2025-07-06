@@ -16,14 +16,15 @@
 # cmake --build --preset conan-release
 
 [requires]
-boost/[>=1.88]
-openssl/[>=3.4.2]
-mosquitto/[>=2.0.21]
-libmodbus/[>=3.1.10]
-yaml-cpp/[>=0.8.0]
+boost/1.88.0
+openssl/3.5.1
+mosquitto/2.0.21
+libmodbus/3.1.10
+yaml-cpp/0.8.0
 rapidjson/[>=1.1.0]
-exprtk/[>=0.0.3]
-catch2/[>=3.8.1]
+exprtk/0.0.3
+sol2/3.5.0
+catch2/3.8.1
 
 [options]
 boost/without_log=False
