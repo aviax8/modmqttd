@@ -44,24 +44,51 @@ TEST_CASE("A 32-bit number should be converted by exprtk") {
     std::shared_ptr<DataConverter> conv(plugin->getConverter("evaluate"));
 
     SECTION("when two registers contain a signed integer") {
-        conv->setArgs({"int32(R0, R1)"});
-        const ModbusRegisters input({0xdcfe, 0x98ba});
-        const int32_t expected = 0xfedcba98;
 
-        MqttValue output = conv->toMqtt(input);
+        SECTION("and byte order is ABCD") {
+            conv->setArgs({"int32be(R0, R1)"});
+            const ModbusRegisters input({0xfedc, 0xba98});
+            const int32_t expected = 0xfedcba98;
 
-        REQUIRE(output.getDouble() == expected);
-        REQUIRE(output.getString() == "-19088744");
+            MqttValue output = conv->toMqtt(input);
+
+            REQUIRE(output.getDouble() == expected);
+            REQUIRE(output.getString() == "-19088744");
+        }
+
+        SECTION("and byte order is BADC") {
+            conv->setArgs({"int32(R0, R1)"});
+            const ModbusRegisters input({0xdcfe, 0x98ba});
+            const int32_t expected = 0xfedcba98;
+
+            MqttValue output = conv->toMqtt(input);
+
+            REQUIRE(output.getDouble() == expected);
+            REQUIRE(output.getString() == "-19088744");
+        }
     }
 
     SECTION("when two registers contain an unsigned integer") {
-        conv->setArgs({"uint32(R0, R1)"});
-        const ModbusRegisters input({0xdcfe, 0x98ba});
 
-        MqttValue output = conv->toMqtt(input);
+        SECTION("and byte order is ABCD") {
+            conv->setArgs({"uint32be(R0, R1)"});
+            const ModbusRegisters input({0xdcfe, 0x98ba});
 
-        REQUIRE(output.getDouble() == 0xfedcba98);
-        REQUIRE(output.getString() == "4275878552");
+            MqttValue output = conv->toMqtt(input);
+
+            REQUIRE(output.getDouble() == 0xdcfe98ba);
+            REQUIRE(output.getString() == "3707672762");
+        }
+
+        SECTION("and byte order is BADC") {
+            conv->setArgs({"uint32(R0, R1)"});
+            const ModbusRegisters input({0xdcfe, 0x98ba});
+
+            MqttValue output = conv->toMqtt(input);
+
+            REQUIRE(output.getDouble() == 0xfedcba98);
+            REQUIRE(output.getString() == "4275878552");
+        }
     }
 
     SECTION("when two registers contain a float") {
