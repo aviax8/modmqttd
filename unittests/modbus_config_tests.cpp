@@ -112,3 +112,36 @@ mqtt:
         REQUIRE(err.mLineNumber == 18);
     }
 }
+
+TEST_CASE("Modbus LuaConv configuration") {
+TestConfig config(R"(
+modmqttd:
+  converter_search_path:
+    - build/luaconv
+  converter_plugins:
+    - luaconv.so
+modbus:
+  networks:
+    - name: tcptest
+      address: localhost
+      port: 501
+mqtt:
+  client_id: mqtt_test
+  broker:
+    host: localhost
+  objects:
+    - topic: test_sensor
+      state:
+        converter: lua.evaluate("R0 is not valid")
+        register: tcptest.1.2
+)");
+
+    SECTION("should throw if expression is not valid") {
+        MockedModMqttServerThread server(config.toString(), false);
+        server.start();
+        server.stop();
+        REQUIRE(server.initOk() == false);
+        const modmqttd::ConfigurationException& err(dynamic_cast<const modmqttd::ConfigurationException&>(server.getException()));
+        REQUIRE(err.mLineNumber == 18);
+    }
+}

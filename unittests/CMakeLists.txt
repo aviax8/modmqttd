@@ -19,6 +19,7 @@ add_executable(tests
     # tests
     converter_name_parser_tests.cpp
     exprconv_tests.cpp
+    luaconv_tests.cpp
     modbus_config_tests.cpp
     modbus_executor_tests.cpp
     modbus_executor_single_delay_tests.cpp
