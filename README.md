@@ -923,17 +923,15 @@ Register values are defined as R0..Rn variables.
     The following custom functions for 32-bit numbers are supported in the expression.
     _ABCD_ means a number composed of the byte array `[A, B, C, D]`,
     where _A_ is the most significant byte (MSB) and _D_ is the least-significant byte (LSB).
-      - `int32(R0, R1)`:   Cast to signed integer _ABCD_ from `R0` == _AB_ and `R1` == _CD_.
-      - `int32(R1, R0)`:   Cast to signed integer _ABCD_ from `R0` == _CD_ and `R1` == _AB_.
-      - `uint32(R0, R1)`:  Cast to unsigned integer _ABCD_ from `R0` == _AB_ and `R1` == _CD_.
-      - `uint32(R1, R0)`:  Cast to unsigned integer _ABCD_ from `R0` == _CD_ and `R1` == _AB_.
-      - `flt32(R0, R1)`:   Cast to float _ABCD_ from `R0` == _AB_ and `R1` == _CD_.
-      - `flt32(R1, R0)`:   Cast to float _ABCD_ from `R0` == _CD_ and `R1` == _AB_.
-      - `flt32be(R0, R1)`: Cast to float _ABCD_ from `R0` == _BA_ and `R1` == _DC_.
-      - `flt32be(R1, R0)`: Cast to float _ABCD_ from `R0` == _DC_ and `R1` == _BA_.
+      - `int32(R0, R1)`:    Cast to signed integer _ABCD_ from `R0` == _AB_ and `R1` == _CD_.
+      - `int32be(R0, R1)`:  Cast to signed integer _ABCD_ from `R0` == _BA_ and `R1` == _DC_.
+      - `uint32(R0, R1)`:   Cast to unsigned integer _ABCD_ from `R0` == _AB_ and `R1` == _CD_.
+      - `uint32be(R0, R1)`: Cast to unsigned integer _ABCD_ from `R0` == _BA_ and `R1` == _DA_.
+      - `flt32(R0, R1)`:    Cast to float _ABCD_ from `R0` == _AB_ and `R1` == _CD_.
+      - `flt32be(R0, R1)`:  Cast to float _ABCD_ from `R0` == _BA_ and `R1` == _DC_.
+      - switch ```(R0, R1)``` arguments to ```(R1, R0)``` to reorder words in the resulting value
 
     &nbsp;
-
 
     If modbus register contains signed integer data, you can use this cast in the expression:
 

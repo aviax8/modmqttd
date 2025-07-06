@@ -83,11 +83,13 @@ public:
         );
 
         // add user-defined functions
-        mLua.set_function("int32", int32);
-        mLua.set_function("uint32", uint32);
-        mLua.set_function("flt32", flt32);
-        mLua.set_function("flt32be", flt32be);
-        mLua.set_function("int16", int16);
+        mLua.set_function("int32",    int32);
+        mLua.set_function("int32be",  int32be);
+        mLua.set_function("uint32",   uint32);
+        mLua.set_function("uint32be", uint32be);
+        mLua.set_function("flt32",    flt32);
+        mLua.set_function("flt32be",  flt32be);
+        mLua.set_function("int16",    int16);
 
         // pre-register variables R0 to R9 with zero value
         for (int i = 0; i < MAX_REGISTERS; i++) {
@@ -127,8 +129,16 @@ private:
         return ConverterTools::toNumber<int32_t>(high, low, true);
     }
 
+    static double int32be(double high, double low) {
+        return ConverterTools::toNumber<int32_t>(high, low);
+    }
+
     static double uint32(double high, double low) {
         return ConverterTools::toNumber<uint32_t>(high, low, true);
+    }
+
+    static double uint32be(double high, double low) {
+        return ConverterTools::toNumber<uint32_t>(high, low);
     }
 
     static double flt32(double high, double low) {

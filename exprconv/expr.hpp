@@ -28,11 +28,13 @@ class ExprtkConverter : public DataConverter {
         }
 
         virtual void setArgs(const std::vector<std::string>& args) {
-            mSymbolTable.add_function("int32",   int32);
-            mSymbolTable.add_function("uint32",  uint32);
-            mSymbolTable.add_function("flt32",   flt32);
-            mSymbolTable.add_function("flt32be", flt32be);
-            mSymbolTable.add_function("int16", int16);
+            mSymbolTable.add_function("int32",    int32);
+            mSymbolTable.add_function("int32be",  int32be);
+            mSymbolTable.add_function("uint32",   uint32);
+            mSymbolTable.add_function("uint32be", uint32be);
+            mSymbolTable.add_function("flt32",    flt32);
+            mSymbolTable.add_function("flt32be",  flt32be);
+            mSymbolTable.add_function("int16",    int16);
             mSymbolTable.add_constants();
 
             char buf[16];
@@ -62,8 +64,16 @@ class ExprtkConverter : public DataConverter {
             return ConverterTools::toNumber<int32_t>(highRegister, lowRegister, true);
         }
 
+        static double int32be(const double highRegister, const double lowRegister) {
+            return ConverterTools::toNumber<int32_t>(highRegister, lowRegister);
+        }
+
         static double uint32(const double highRegister, const double lowRegister) {
             return ConverterTools::toNumber<uint32_t>(highRegister, lowRegister, true);
+        }
+
+        static double uint32be(const double highRegister, const double lowRegister) {
+            return ConverterTools::toNumber<uint32_t>(highRegister, lowRegister);
         }
 
         static double flt32(const double highRegister, const double lowRegister) {
