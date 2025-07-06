@@ -1,26 +1,37 @@
 cmake_minimum_required(VERSION 3.13)
-project(modmqttd VERSION 1.0.0)
+project(modmqttd VERSION 1.1.0)
+
+option(USE_STATIC_RUNTIME "Build with static runtime libraries" ON)
 
 option(WITHOUT_TESTS "Do not build unit tests")
+
 set(build_unittests)
 if (WITHOUT_TESTS)
     set(build_unittests EXCLUDE_FROM_ALL)
 endif()
 
-# OLD until min boost version will be bumped to 1.70.x or higher 
-if (POLICY CMP0167)
-    cmake_policy(SET CMP0167 OLD)
+list(APPEND CMAKE_MODULE_PATH "/opt/boost-armv6")
+find_package(Boost 1.88.0 REQUIRED COMPONENTS log_setup log program_options)
+
+set(Boost_USE_STATIC_LIBS    ON)
+set(Boost_USE_MULTITHREADED  ON)
+
+if(USE_STATIC_RUNTIME)
+    set(Boost_USE_STATIC_RUNTIME  ON)
+    set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++ -static-libgcc")
+else()
+    set(Boost_USE_STATIC_RUNTIME  OFF)
 endif()
 
-find_package(Boost 1.54.0 REQUIRED COMPONENTS log program_options)
-set(Boost_USE_STATIC_LIBS        OFF)
-set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME     OFF)
-set(BOOST_ALL_DYN_LINK           ON) 
 
-find_package(PkgConfig)
-pkg_check_modules(LIBMODBUS REQUIRED libmodbus)
-pkg_check_modules(MOSQUITTO REQUIRED libmosquitto)
+if(DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "conan_toolchain.cmake")
+    find_package(libmodbus REQUIRED)
+    find_package(mosquitto REQUIRED)
+else()
+    find_package(PkgConfig)
+    pkg_check_modules(LIBMODBUS REQUIRED libmodbus)
+    pkg_check_modules(MOSQUITTO REQUIRED libmosquitto)
+endif()
 
 find_package(Threads)
 
@@ -32,9 +43,6 @@ message(STATUS "EXPRTK_INCLUDE_DIR => ${EXPRTK_INCLUDE_DIR}")
 
 include_directories(${Boost_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIRS} .)
 link_directories(${Boost_LIBRARY_DIRS})
-
-# force boost dynamic linking
-add_definitions(-DBOOST_LOG_DYN_LINK)
 
 add_subdirectory(libmodmqttconv)
 add_subdirectory(libmodmqttsrv)
@@ -55,7 +63,7 @@ endif()
 
 if (EXPRTK_INCLUDE_DIR)
     include_directories(${EXPRTK_INCLUDE_DIR})
-    add_subdirectory(exprconv)    
+    add_subdirectory(exprconv)
     add_dependencies(modmqttd exprconv)
 
     if (NOT WITHOUT_TESTS)
@@ -67,7 +75,6 @@ if (EXPRTK_INCLUDE_DIR)
 endif()
 
 
-
 install (TARGETS modmqttd DESTINATION bin)
 
 install (TARGETS modmqttsrv DESTINATION lib)
@@ -75,4 +82,4 @@ install (DIRECTORY "${PROJECT_SOURCE_DIR}/libmodmqttconv" DESTINATION include FI
 
 install(TARGETS stdconv DESTINATION lib/modmqttd)
 
-install(FILES modmqttd.service DESTINATION lib/systemd/system) 
+install(FILES modmqttd.service DESTINATION lib/systemd/system)

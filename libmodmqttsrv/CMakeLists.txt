@@ -2,8 +2,8 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 add_library(modmqttsrv
-    SHARED
-    config.cpp 
+    STATIC
+    config.cpp
     config.hpp
     conv_name_parser.cpp
     conv_name_parser.hpp
@@ -13,8 +13,8 @@ add_library(modmqttsrv
     default_command_converter.hpp
     logging.cpp
     logging.hpp
-    modbus_client.cpp 
-    modbus_client.hpp 
+    modbus_client.cpp
+    modbus_client.hpp
     modbus_context.cpp
     modbus_context.hpp
     modbus_executor.cpp
@@ -33,8 +33,8 @@ add_library(modmqttsrv
     modbus_types.hpp
     modbus_watchdog.cpp
     modbus_watchdog.hpp
-    modmqtt.cpp 
-    modmqtt.hpp 
+    modmqtt.cpp
+    modmqtt.hpp
     mosquitto.cpp
     mosquitto.hpp
     mqttclient.cpp
@@ -53,3 +53,13 @@ add_library(modmqttsrv
 target_include_directories (modmqttsrv PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(modmqttsrv PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(modmqttsrv PROPERTIES SOVERSION 1)
+
+if(DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "conan_toolchain.cmake")
+    target_link_libraries(modmqttsrv
+        PRIVATE
+            mosquitto::mosquitto
+            libmodbus::libmodbus
+            yaml-cpp::yaml-cpp
+            rapidjson
+    )
+endif()

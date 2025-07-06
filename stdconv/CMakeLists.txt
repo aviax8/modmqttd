@@ -13,4 +13,11 @@ add_library(stdconv
     uint32.hpp
 )
 
+if(USE_STATIC_RUNTIME)
+    target_link_options(stdconv PRIVATE
+        -static-libstdc++
+        -static-libgcc
+    )
+endif()
+
 SET_TARGET_PROPERTIES(stdconv PROPERTIES PREFIX "")

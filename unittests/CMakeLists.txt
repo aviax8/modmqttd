@@ -70,13 +70,29 @@ add_executable(tests
     yaml_converters_tests.cpp
 )
 
-target_link_libraries(tests
-    modmqttsrv
-    ${MOSQUITTO_LIBRARIES}
-    Catch2::Catch2
-    yaml-cpp
-    ${Boost_LIBRARIES}
-    ${LIBMODBUS_LIBRARIES}
-    ${CMAKE_THREAD_LIBS_INIT}
-    ${CMAKE_DL_LIBS}
-)
+if(DEFINED CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "conan_toolchain.cmake")
+    target_link_libraries(tests
+        modmqttsrv
+        mosquitto::mosquitto
+        Catch2::Catch2
+        yaml-cpp::yaml-cpp
+        boost::boost
+        Boost::log
+        libmodbus::libmodbus
+        ${CMAKE_THREAD_LIBS_INIT}
+        ${CMAKE_DL_LIBS}
+        rapidjson
+        atomic
+    )
+else()
+    target_link_libraries(tests
+        modmqttsrv
+        ${MOSQUITTO_LIBRARIES}
+        Catch2::Catch2
+        yaml-cpp
+        ${Boost_LIBRARIES}
+        ${LIBMODBUS_LIBRARIES}
+        ${CMAKE_THREAD_LIBS_INIT}
+        ${CMAKE_DL_LIBS}
+    )
+endif()

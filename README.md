@@ -30,11 +30,11 @@ Main features:
 MQMGateway depends on [libmodbus](https://libmodbus.org/) and [Mosquitto](https://mosquitto.org/) MQTT library. See main [CMakeLists.txt](CMakeLists.txt) for full list of dependencies. It is developed under Linux, but it should be easy to port it to other platforms.
 
 # License
-This software is dual-licensed:
-  * under the terms of [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.html) as Open Source project.
-  * under commercial license.
 
-For a commercial-friendly license and support please see http://mqmgateway.zork.pl.
+This software is licensed under the terms of [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.html) as Open Source project.
+
+The [upstream project](https://github.com/BlackZork/mqmgateway) offers a commercial-friendly license and support at http://mqmgateway.zork.pl.
+
 
 # Third-party licenses
 
@@ -43,7 +43,33 @@ Cameron Desrochers. See license terms in [LICENSE.md](readerwriterqueue/LICENSE.
 
 # Installation
 
-## From sources
+## From sources (using [Conan](https://conan.io))
+
+1. Install dependencies (native compilation):
+
+    ```
+    conan install . --build=missing
+    ```
+
+1. Install dependencies (cross-compilation for RPi):
+
+    ```
+    cd ~
+    git clone https://github.com/tttapa/docker-arm-cross-toolchain.git
+    conan remote add tttapa-docker-arm-cross-toolchain ~/docker-arm-cross-toolchain
+    cd modmqttd
+    conan install . --build=missing -pr ~/docker-arm-cross-toolchain/profiles/armv6-rpi-linux-gnueabihf.conan
+    ```
+
+1. Configure and build project:
+
+    ```
+    cmake --preset conan-release --fresh
+    cmake --build --preset conan-release
+    ```
+
+
+## From sources (manual dependency installation)
 
 1. `git clone https://github.com/BlackZork/mqmgateway.git#branch=master`
 
@@ -67,6 +93,9 @@ Cameron Desrochers. See license terms in [LICENSE.md](readerwriterqueue/LICENSE.
     ```
 
     You can add -DWITHOUT_TESTS=1 to skip build of unit test executable.
+
+
+## Post-installation steps
 
 1. Copy config.template.yaml to /etc/modmqttd/config.yaml and adjust it.
 
@@ -308,7 +337,7 @@ The mqtt section contains broker definition and modbus register mappings. Mappin
 * **publish_mode** (string, optional, default on_change)
 
   A default mode for publishing mqtt values for all topics, that do not have their own `publish_mode` declared.
-  
+
     * **on_change**: publish new mqtt value only if it is different from the last published one.
     * **every_poll**: publish new mqtt value after every modbus register read.
 
@@ -393,16 +422,16 @@ A list of topics where modbus values are published to MQTT broker and subscribed
 
   * **retain** (optional, default true)
 
-    Sets the [MQTT RETAIN](https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901104) flag for 
+    Sets the [MQTT RETAIN](https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901104) flag for
     all messages published for this topic. Changes state value updates in the following way:
 
     1. If retain = true:
         * state value is published immediately after initial poll
-        * just before the availability flag changes its value from 0 to 1, the current state value is published 
+        * just before the availability flag changes its value from 0 to 1, the current state value is published
 
     1. If retain = false:
-  
-        When publish_mode is set to "every_poll" then the publishing behavior is the same as when `retain` flag 
+
+        When publish_mode is set to "every_poll" then the publishing behavior is the same as when `retain` flag
         is set to 'true'. The only difference is that all messages are published with the MQTT RETAIN flag set to false.
 
         If publish_mode is set to "on_change", then:
@@ -412,7 +441,7 @@ A list of topics where modbus values are published to MQTT broker and subscribed
           * availability topic messages are always published with the MQTT RETAIN flag set to true
           * if one of registers was unavailable, only the the availability flag is published after the first successful read.
 
-          This mode guarantees that the subscriber receives only recent changes. State value that 
+          This mode guarantees that the subscriber receives only recent changes. State value that
           was set before the initial poll or during read error period will not be published.
 
           The only one exception is that MQMGateway after start will send a zero-byte payload to a topic
@@ -883,7 +912,8 @@ Register values are defined as R0..Rn variables.
     Usage: state
 
     Arguments:
-      - [exprtk expression](http://www.partow.net/programming/exprtk/) with Rx as register variables (required)
+      - [exprtk expression](http://www.partow.net/programming/exprtk/) (required)
+        - expression can use _R0..R9_ as register variables
       - precision (optional)
 
     &nbsp;
