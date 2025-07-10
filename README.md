@@ -907,7 +907,7 @@ When an availability value should be computed from multiple registers:
 ### Exprtk converter.
 
 Exprtk converter allows to use exprtk expression language to convert register data to mqtt value.
-Register values are defined as R0..Rn variables.
+Register values are defined as R0..R19 variables.
 
   * **evaluate**
 
@@ -915,7 +915,7 @@ Register values are defined as R0..Rn variables.
 
     Arguments:
       - [exprtk expression](http://www.partow.net/programming/exprtk/) (required)
-        - expression can use _R0..R9_ as register variables
+        - expression can use _R0..R19_ as register variables
       - precision (optional)
 
     &nbsp;
@@ -940,7 +940,7 @@ Register values are defined as R0..Rn variables.
 ### Lua converter.
 
 Lua converter allows to use Lua expression language to convert register data to mqtt value.
-Register values are defined as _R0..R9_ variables.
+Register values are defined as _R0..R19_ variables.
 
   * **evaluate**
 
@@ -948,7 +948,7 @@ Register values are defined as _R0..R9_ variables.
 
     Arguments:
       - [Lua expression](https://www.lua.org) (required)
-        - expression can use _R0..R9_ as register variables
+        - expression can use _R0..R19_ as register variables
         - expression must return _numeric_, _boolean_ or _string_ value
         - e.g. `converter: lua.evaluate("return string.format('%04X', R0)")`
       - precision (optional, ignored for _string_ and _boolean_ return types)

@@ -10,7 +10,7 @@
 
 class LuaConverter : public DataConverter {
 public:
-    static const int MAX_REGISTERS = 10;
+    static const int MAX_REGISTERS = 20;
 
     LuaConverter() : mValues(MAX_REGISTERS, 0), mPrecision(-1) {}
 
@@ -92,7 +92,7 @@ public:
         mLua.set_function("int16",    int16);
         mLua.set_function("bit_positions", bit_positions);
 
-        // pre-register variables R0 to R9 with zero value
+        // pre-register variables R0 to R19 with zero value
         for (int i = 0; i < MAX_REGISTERS; i++) {
             mLua["R" + std::to_string(i)] = 0.0;
         }

@@ -163,4 +163,23 @@ TEST_CASE ("A uint16_t register data should be converted to exprtk value") {
     REQUIRE(output.getString() == "-1");
 }
 
+TEST_CASE("ExprConv: 20 registers should be processed by exprtk") {
+    std::string stdconv_path = "../exprconv/exprconv.so";
+    std::shared_ptr<ConverterPlugin> plugin = boost_dll_import<ConverterPlugin>(
+        stdconv_path,
+        "converter_plugin",
+        boost::dll::load_mode::append_decorations
+    );
+    std::shared_ptr<DataConverter> conv(plugin->getConverter("evaluate"));
+
+    conv->setArgs({"R0+R1+R2+R3+R4+R5+R6+R7+R8+R9+R10+R11+R12+R13+R14+R15+R16+R17+R18+R19", "0"});
+
+    const ModbusRegisters input({1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20});
+
+    MqttValue output = conv->toMqtt(input);
+
+    REQUIRE(output.getString() == "210");
+}
+
+
 #endif
