@@ -39,6 +39,7 @@ class ModbusThread {
         bool mShouldRun = true;
 
         bool mMqttConnected = false;
+        bool mMqttConWaitReported = false;
         bool mGotRegisters = false;
 
         std::shared_ptr<IModbusContext> mModbus;

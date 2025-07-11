@@ -238,9 +238,12 @@ ModbusThread::run() {
                                 mWatchdog.inspectCommand(*mExecutor.getLastCommand());
                             }
                         }
+                        mMqttConWaitReported = false;
                     } else {
-                        if (!mMqttConnected)
+                        if (!mMqttConnected && !mMqttConWaitReported) {
                             BOOST_LOG_SEV(log, Log::info) << "Waiting for mqtt network to become online";
+                            mMqttConWaitReported = true;
+                        }
 
                         idleWaitDuration = std::chrono::steady_clock::duration::max();
                     }
