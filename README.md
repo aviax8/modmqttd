@@ -945,8 +945,8 @@ Register values are defined as R0..R19 variables.
 
 ### Lua converter.
 
-Lua converter allows to use Lua expression language to convert register data to mqtt value.
-Register values are defined as _R0..R19_ variables.
+Lua converter allows to use Lua expression language to convert register data to MQTT value for states or MQTT payload to register(s) for commands.
+Register values are defined as _R0..R19_ variables. MQTT payload value is defined as _V_ variable.
 
   * **evaluate**
 
@@ -954,10 +954,20 @@ Register values are defined as _R0..R19_ variables.
 
     Arguments:
       - [Lua expression](https://www.lua.org) (required)
-        - expression can use _R0..R19_ as register variables
+        - expression can use _R0..R19_ variables containing register values
         - expression must return _numeric_, _boolean_ or _string_ value
         - e.g. `converter: lua.evaluate("return string.format('%04X', R0)")`
       - precision (optional, ignored for _string_ and _boolean_ return types)
+
+    &nbsp;
+
+    Usage: commands
+
+    Arguments:
+      - [Lua expression](https://www.lua.org) (required)
+        - expression can use _V_ variable containing MQTT payload
+        - expression must return a _numeric_ value for single register or a _table_ for multiple registers
+        - e.g. `converter: lua.evaluate("return tonumber((V:gsub(':', '')))")` converts "23:59" string into 2359 number.
 
     &nbsp;
 

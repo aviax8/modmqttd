@@ -28,7 +28,7 @@ public:
         #endif
 
         if (data.getCount() > MAX_REGISTERS)
-            throw ConvException("Maximum " + std::to_string(MAX_REGISTERS) + " registers allowed");
+            throw ConvException("Lua toMqtt runtime error: Maximum " + std::to_string(MAX_REGISTERS) + " registers allowed");
 
         // update register values in Lua env
         for (int i = 0; i < data.getCount(); i++) {
@@ -39,7 +39,7 @@ public:
         sol::protected_function_result result = mFunction();
         if (!result.valid()) {
             sol::error err = result;
-            throw ConvException(std::string("Lua runtime error: ") + err.what());
+            throw ConvException(std::string("Lua toMqtt runtime error: ") + err.what());
         }
 
         switch (result.get_type()) {
@@ -61,8 +61,73 @@ public:
                 }
             }
             default:
-                throw ConvException("Unexpected Lua expression return type (valid is string, number, boolean");
+                throw ConvException("Lua toMqtt runtime error: Unexpected Lua expression return type (valid is string, number, boolean");
         }
+    }
+
+    virtual ModbusRegisters toModbus(const MqttValue& value, int registerCount) const override {
+        #ifdef LUACONV_DEBUG
+        std::cout << "LuaConverter: toModbus(" << dbgLogContext << ")" << std::endl;
+        #endif
+
+        // Set Lua variable to MQTT payload
+        switch (value.getSourceType()) {
+            case MqttValue::SourceType::INT:
+            case MqttValue::SourceType::INT64:
+            case MqttValue::SourceType::DOUBLE:
+                mLua["V"] = value.getDouble();
+                break;
+            case MqttValue::SourceType::BINARY:
+                mLua["V"] = value.getString();
+                break;
+            default:
+                throw ConvException("Lua toModbus runtime error: Unsupported MQTT value type for Lua conversion");
+        }
+
+        // Calling Lua function
+        sol::protected_function_result result = mFunction();
+        if (!result.valid()) {
+            sol::error err = result;
+            throw ConvException(std::string("Lua toModbus runtime error: ") + err.what());
+        }
+
+        // Convert z Lua result to ModbusRegisters
+        ModbusRegisters regs;
+
+        switch (result.get_type()) {
+            case sol::type::number: {
+                // A number - 1 register
+                uint16_t regVal = static_cast<uint16_t>(result.get<double>());
+                regs.appendValue(regVal);
+                break;
+            }
+
+            case sol::type::table: {
+                // Lua table - multiple registers
+                sol::table tbl = result;
+                for (auto& kv : tbl) {
+                    sol::object val = kv.second;
+                    if (val.get_type() == sol::type::number) {
+                        regs.appendValue(static_cast<uint16_t>(val.as<double>()));
+                    } else {
+                        throw ConvException("Lua toModbus runtime error: Invalid element type in Lua table (expected number)");
+                    }
+                }
+                break;
+            }
+
+            default:
+                throw ConvException("Lua toModbus runtime error: Unexpected Lua return type (expected number or table)");
+        }
+
+        // Check number of returned registers
+        if (registerCount > 0 && regs.getCount() != registerCount) {
+            std::ostringstream ss;
+            ss << "Lua toModbus runtime error: Expected " << registerCount << " registers, got " << regs.getCount() << " from Lua";
+            throw ConvException(ss.str());
+        }
+
+        return regs;
     }
 
     virtual void setArgs(const std::vector<std::string>& args) override {
