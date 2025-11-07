@@ -39,7 +39,7 @@ class ModbusExecutorTestRegisters : public std::map<int, std::vector<std::shared
             int number,
             uint16_t value
         ) {
-            std::shared_ptr<modmqttd::RegisterWrite> reg(new modmqttd::RegisterWrite(slave, number-1, modmqttd::RegisterType::HOLDING, value));
+            std::shared_ptr<modmqttd::RegisterWrite> reg(new modmqttd::RegisterWrite(slave, number-1, modmqttd::RegisterType::HOLDING, value, modmqttd::ModbusFunction::AUTO));
             return reg;
         }
 
@@ -50,7 +50,7 @@ class ModbusExecutorTestRegisters : public std::map<int, std::vector<std::shared
             std::chrono::steady_clock::duration delay = std::chrono::milliseconds::zero(),
             std::chrono::steady_clock::duration first_delay = std::chrono::milliseconds::zero()
         ) {
-            std::shared_ptr<modmqttd::RegisterWrite> reg(new modmqttd::RegisterWrite(slave, number-1, modmqttd::RegisterType::HOLDING, value));
+            std::shared_ptr<modmqttd::RegisterWrite> reg(new modmqttd::RegisterWrite(slave, number-1, modmqttd::RegisterType::HOLDING, value, modmqttd::ModbusFunction::AUTO));
             reg->setDelayBeforeFirstCommand(first_delay);
             reg->setDelayBeforeCommand(delay);
             return reg;

@@ -474,6 +474,12 @@ A list of topics where modbus values are published to MQTT broker and subscribed
 
      Number of registers to write. If set to > 1, then modbus_write_registers(3)/modbus_write_bits(3) is called.
 
+  * **function** (optional)
+
+     Modbus function to use:
+     * auto: function is determined from register type and count
+     * write_multiple_registers: use function 16 (modbus_write_registers(3)/modbus_write_bits(3))
+
   * **converter** (optional)
 
     The name of function that should be called to convert mqtt value to uint16_t value. Format of function name is `plugin name.function name`. See converters for details.

@@ -20,14 +20,16 @@ class MqttObjectCommand : public ModbusSlaveAddressRange {
             int pSlaveId,
             RegisterType pRegisterType,
             int pRegisterNumber,
-            int pRegisterCount = 1
+            int pRegisterCount = 1,
+            ModbusFunction modbusFunction = ModbusFunction::AUTO
         ) : ModbusSlaveAddressRange(
                 pSlaveId, pRegisterNumber, pRegisterType, pRegisterCount
             ),
             mTopic(pTopic),
             mPayloadType(pPayloadType),
             mModbusNetworkName(pModbusNetworkName),
-            mCommandId(pCommandId)
+            mCommandId(pCommandId),
+            mModbusFunction(modbusFunction)
         {};
         std::string mTopic;
         PayloadType mPayloadType;
@@ -37,8 +39,11 @@ class MqttObjectCommand : public ModbusSlaveAddressRange {
         bool hasConverter() const { return mConverter != nullptr; }
         const DataConverter& getConverter() const { return *mConverter; }
         int getCommandId() const { return mCommandId; }
+        ModbusFunction getModbusFunction() const { return mModbusFunction; }
+
     private:
         int mCommandId;
+        ModbusFunction mModbusFunction;
         std::shared_ptr<DataConverter> mConverter;
 };
 

@@ -427,7 +427,7 @@ void
 MockedModbusFactory::setModbusRegisterValue(const char* network, int slaveId, int regNum, modmqttd::RegisterType regtype, uint16_t val) {
     regNum--;
     std::shared_ptr<MockedModbusContext> ctx = getOrCreateContext(network);
-    modmqttd::RegisterWrite msg(slaveId, regNum, regtype, ModbusRegisters(val));
+    modmqttd::RegisterWrite msg(slaveId, regNum, regtype, ModbusRegisters(val), modmqttd::ModbusFunction::AUTO);
     ctx->mInternalOperation = true;
     ctx->writeModbusRegisters(msg.mSlaveId, msg);
 }

@@ -194,7 +194,7 @@ ModbusContext::writeModbusRegisters(int slaveId, const RegisterWrite& msg) {
     int retCode;
     switch(msg.mRegisterType) {
         case RegisterType::COIL:
-            if (msg.mValues.getCount() == 1) {
+            if (msg.mValues.getCount() == 1 && msg.mModbusFunction != WRITE_MULTIPLE_REGISTERS) {
                 uint16_t value = msg.mValues.getValue(0);
                 retCode = modbus_write_bit(mCtx, msg.mRegister, value == 1 ? TRUE : FALSE);
             } else {
@@ -209,7 +209,7 @@ ModbusContext::writeModbusRegisters(int slaveId, const RegisterWrite& msg) {
             }
         break;
         case RegisterType::HOLDING:
-            if (msg.mValues.getCount() == 1) {
+            if (msg.mValues.getCount() == 1 && msg.mModbusFunction != WRITE_MULTIPLE_REGISTERS) {
                 retCode = modbus_write_register(mCtx, msg.mRegister, msg.mValues.getValue(0));
             } else {
                 int elSize = sizeof(uint16_t);

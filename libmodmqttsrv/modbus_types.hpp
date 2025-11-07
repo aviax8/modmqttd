@@ -13,6 +13,11 @@ enum RegisterType {
     INPUT = 4
 };
 
+enum ModbusFunction {
+    AUTO = 0, // determine function from register type and count
+    WRITE_MULTIPLE_REGISTERS = 16
+};
+
 class ModbusAddressRange {
     protected:
         static boost::log::sources::severity_logger<Log::severity> log;
