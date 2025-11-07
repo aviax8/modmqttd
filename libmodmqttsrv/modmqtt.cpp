@@ -139,6 +139,17 @@ parsePayloadType(const YAML::Node& data) {
     throw ConfigurationException(data.Mark(), std::string("Unknown payload type ") + ptype);
 }
 
+ModbusFunction
+parseModbusFunction(const YAML::Node& data) {
+    std::string function = "auto";
+    ConfigTools::readOptionalValue<std::string>(function, data, "function");
+    if (function == "auto")
+        return ModbusFunction::AUTO;
+    if (function == "write_multiple_registers")
+        return ModbusFunction::WRITE_MULTIPLE_REGISTERS;
+    throw ConfigurationException(data.Mark(), std::string("Unknown modbus function ") + function);
+}
+
 ModMqtt::ModMqtt()
 {
     // unit tests create main class multiple times
@@ -651,6 +662,7 @@ ModMqtt::parseObjectCommand(
     MqttObjectCommand::PayloadType pType = parsePayloadType(node);
     int count = 1;
     ConfigTools::readOptionalValue<int>(count, node, "count");
+    ModbusFunction modbusFunction = parseModbusFunction(node);
 
     MqttObjectCommand cmd(
         nextCommandId,
@@ -660,7 +672,8 @@ ModMqtt::parseObjectCommand(
         rname.mSlaveId,
         rType,
         rname.mRegisterNumber,
-        count
+        count,
+        modbusFunction
     );
 
     const YAML::Node& converter = node["converter"];

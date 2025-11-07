@@ -15,11 +15,12 @@ namespace modmqttd {
 
 class MsgRegisterValues : public ModbusSlaveAddressRange {
     public:
-        MsgRegisterValues(int slaveId, RegisterType regType, int registerNumber, const ModbusRegisters& registers, int pCommandId)
+        MsgRegisterValues(int slaveId, RegisterType regType, int registerNumber, const ModbusRegisters& registers, int pCommandId, ModbusFunction modbusFunction)
             : ModbusSlaveAddressRange(slaveId, registerNumber, regType, registers.getCount()),
               mRegisters(registers),
               mCreationTime(std::chrono::steady_clock::now()),
-              mCommandId(pCommandId)
+              mCommandId(pCommandId),
+              mModbusFunction(modbusFunction)
             {}
         MsgRegisterValues(int slaveId, RegisterType regType, int registerNumber, const std::vector<uint16_t>& registers)
             : ModbusSlaveAddressRange(slaveId, registerNumber, regType, registers.size()),
@@ -30,11 +31,13 @@ class MsgRegisterValues : public ModbusSlaveAddressRange {
         const std::chrono::steady_clock::time_point& getCreationTime() const { return mCreationTime; }
         int getCommandId() const { return mCommandId; }
         bool hasCommandId() const { return mCommandId != 0; }
+        ModbusFunction getModbusFunction() const { return mModbusFunction; }
 
         ModbusRegisters mRegisters;
     private:
         std::chrono::steady_clock::time_point mCreationTime;
         int mCommandId = 0;
+        ModbusFunction mModbusFunction = ModbusFunction::AUTO;
 };
 
 class MsgRegisterReadFailed : public ModbusSlaveAddressRange {

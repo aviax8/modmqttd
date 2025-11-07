@@ -488,6 +488,12 @@ A single command is defined using following settings.
 
     Number of registers to write. If set to > 1, then modbus_write_registers(3)/modbus_write_bits(3) is called.
 
+* **function** (optional)
+
+    Modbus function to use:
+     * auto: function is determined from register type and count
+     * write_multiple_registers: use function 16 (modbus_write_registers(3)/modbus_write_bits(3))
+
 * **converter** (optional)
 
   The name of function that should be called to convert MQTT value to uint16_t value. Format of function name is `plugin name.function name`. See converters for details.
@@ -923,7 +929,7 @@ Register values are defined as `R0..Rn` variables.
   * `uint16(R0)`: Read uint16 value from `R0` == `AB`
   * `uint16bs(R0)`: Read uint16 value from `R0` == `BA`
 
-  All of the above functions can be used as `write_as` helper to store an expression value in modbus registers during writing. 
+  All of the above functions can be used as `write_as` helper to store an expression value in modbus registers during writing.
   Additionally, the `low_first` argument can be used to store `ABCD` int32/float value as `RO`=`CD`, `R1`=`BA`.
 
 #### Examples

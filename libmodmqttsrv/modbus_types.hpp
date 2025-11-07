@@ -12,6 +12,11 @@ enum RegisterType {
     INPUT = 4
 };
 
+enum ModbusFunction {
+    AUTO = 0, // determine function from register type and count
+    WRITE_MULTIPLE_REGISTERS = 16
+};
+
 class ModbusAddressRange {
     public:
         ModbusAddressRange(int pRegister, RegisterType pRegisterType, int pCount)
