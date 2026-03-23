@@ -1,6 +1,11 @@
 #pragma once
 
 #include <bit>
+#include <chrono>
+#include <ctime>
+#include <format>
+#include <string>
+#include <string_view>
 
 #include <sol/sol.hpp>
 #include "libmodmqttconv/convexception.hpp"
@@ -54,7 +59,7 @@ public:
             case sol::type::number: {
                 if (mPrecision == 0) {
                     int64_t ret = result;
-                    return MqttValue::fromInt(ret);
+                    return MqttValue::fromInt64(ret);
                 } else {
                     double ret = result;
                     return MqttValue::fromDouble(ret, mPrecision);
@@ -157,6 +162,21 @@ public:
         mLua.set_function("int16",    int16);
         mLua.set_function("bit_positions", bit_positions);
 
+        mLua.set_function("clock_usec",   clock_usec);
+
+        // wrapper due to optional parameters
+        mLua.set_function("format_clock",
+            [](double usec_since_epoch,
+               sol::optional<std::string> format,
+               sol::optional<bool> local) {
+                return LuaConverter::format_clock(
+                    usec_since_epoch,
+                    format.value_or("%Y-%m-%dT%H:%M:%SZ"),
+                    local.value_or(false)
+                );
+            }
+        );
+
         // pre-register variables R0 to R19 with zero value
         for (int i = 0; i < MAX_REGISTERS; i++) {
             mLua["R" + std::to_string(i)] = 0.0;
@@ -236,4 +256,104 @@ private:
         return result;
     }
 
+    /// Returns current system clock as microseconds since Unix epoch (UTC).
+    /// Note: Returned as double (precision ~15 digits).
+    static double clock_usec() {
+        using namespace std::chrono;
+        auto now = system_clock::now().time_since_epoch();
+        auto us = duration_cast<microseconds>(now).count();
+        return static_cast<double>(us);
+    }
+
+    /// Thread-safe conversion to local time
+    static std::tm localtime_safe(std::time_t t) {
+        std::tm tm{};
+        #ifdef _WIN32
+            localtime_s(&tm, &t);
+        #else
+            localtime_r(&t, &tm);
+        #endif
+        return tm;
+    }
+
+    /// Thread-safe conversion to UTC time
+    static std::tm gmtime_safe(std::time_t t) {
+        std::tm tm{};
+        #ifdef _WIN32
+            gmtime_s(&tm, &t);
+        #else
+            gmtime_r(&t, &tm);
+        #endif
+        return tm;
+    }
+
+    /// Formats epoch microseconds into string.
+    ///
+    /// @param usec_since_epoch Time since Unix epoch in microseconds (UTC base)
+    /// @param format Format string (strftime compatible + %f for microseconds)
+    /// @param local If true, format as local time; otherwise UTC time
+    ///
+    /// Example:
+    ///   format_clock(ts, "%Y-%m-%dT%H:%M:%S.%f", true)
+    ///
+    /// %f = microseconds (000000 - 999999)
+    static std::string format_clock(
+        double usec_since_epoch,
+        const std::string& format = "%Y-%m-%dT%H:%M:%SZ",
+        bool local = false
+    ) {
+        using namespace std::chrono;
+
+        // Convert to integer microseconds
+        int64_t usec = static_cast<int64_t>(usec_since_epoch);
+
+        // Split into seconds + microseconds remainder
+        std::time_t sec = static_cast<std::time_t>(usec / 1000000);
+        int64_t micros = usec % 1000000;
+        if (micros < 0) {
+            micros += 1000000;
+             --sec;
+        }
+
+        // Convert to tm (UTC or local)
+        std::tm tm = local ? localtime_safe(sec) : gmtime_safe(sec);
+
+        // Result string
+        std::string result;
+        result.reserve(format.size() + 8); // 2 additional year digits + 6 microseconds
+
+        // Pre-format microseconds as zero-padded 6 digits
+        std::string microsStr = std::format("{:06}", micros);
+
+        // Helper to append strftime-formatted fragment
+        auto append_strftime = [&](std::string_view fmt_part) {
+            if (fmt_part.empty()) {
+                return;
+            }
+
+            char buffer[128];
+            std::size_t n = std::strftime(buffer, sizeof(buffer), std::string(fmt_part).c_str(), &tm);
+            if (n == 0) {
+                result.append("format_clock: strftime failed");
+            } else {
+                result.append(buffer, n);
+            }
+        };
+
+        // Replace all %f occurrences manually
+        std::size_t start = 0;
+        while (true) {
+            std::size_t pos = format.find("%f", start);
+            if (pos == std::string::npos) {
+                append_strftime(std::string_view(format).substr(start));
+                break;
+            }
+
+            append_strftime(std::string_view(format).substr(start, pos - start));
+            result.append(microsStr);
+            start = pos + 2;
+        }
+
+        return result;
+    }
 };

@@ -977,6 +977,12 @@ Register values are defined as _R0..R19_ variables. MQTT payload value is define
       - `bit_positions(uint64_number, lsb_base)`: Return a comma-separated list of bit positions set to 1 in uint64_number.
         - e.g. `converter: lua.evaluate("return bit_positions(6)")` returns "1,2"
         - optional `lsb_base` defines LSB base added to bit positions, `converter: lua.evaluate("return bit_positions(6, 2)")` returns "3,4"
+      - `clock_usec()`: Return current system clock as microseconds since Unix epoch (UTC).
+      - `format_clock(usec_since_epoch, format, local)`: Formats epoch microseconds into string.
+        - `usec_since_epoch` Time since Unix epoch in microseconds (UTC base)
+        - `format` Format string (strftime compatible + %f for microseconds, default is `"%Y-%m-%dT%H:%M:%SZ"`)
+        - `local` If true, format as local time; otherwise UTC time (default is `false`)
+        - example: `format_clock(clock_usec(), "%Y-%m-%dT%H:%M:%S.%f", true)`
 
 #### Examples
 

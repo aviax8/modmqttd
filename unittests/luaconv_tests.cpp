@@ -287,3 +287,181 @@ TEST_CASE("LuaConv: 20 registers should be processed") {
 
     REQUIRE(output.getString() == "210");
 }
+
+TEST_CASE("LuaConv: clock_usec should return current epoch time in microseconds") {
+    using namespace std::chrono;
+
+    std::string stdconv_path = "../luaconv/luaconv.so";
+    std::shared_ptr<ConverterPlugin> plugin = boost_dll_import<ConverterPlugin>(
+        stdconv_path,
+        "converter_plugin",
+        boost::dll::load_mode::append_decorations
+    );
+    std::shared_ptr<DataConverter> conv(plugin->getConverter("evaluate"));
+
+    conv->setArgs({"return clock_usec()"});
+
+    auto before = duration_cast<microseconds>(
+        system_clock::now().time_since_epoch()
+    ).count();
+
+    const ModbusRegisters input({});
+    MqttValue output = conv->toMqtt(input);
+
+    auto after = duration_cast<microseconds>(
+        system_clock::now().time_since_epoch()
+    ).count();
+
+    double value = output.getDouble();
+
+    REQUIRE(value >= static_cast<double>(before));
+    REQUIRE(value <= static_cast<double>(after));
+}
+
+TEST_CASE("LuaConv: format_clock should format epoch microseconds as default UTC ISO string") {
+    std::string stdconv_path = "../luaconv/luaconv.so";
+    std::shared_ptr<ConverterPlugin> plugin = boost_dll_import<ConverterPlugin>(
+        stdconv_path,
+        "converter_plugin",
+        boost::dll::load_mode::append_decorations
+    );
+    std::shared_ptr<DataConverter> conv(plugin->getConverter("evaluate"));
+
+    conv->setArgs({"return format_clock(0)"});
+
+    const ModbusRegisters input({});
+    MqttValue output = conv->toMqtt(input);
+
+    REQUIRE(output.getString() == "1970-01-01T00:00:00Z");
+}
+
+TEST_CASE("LuaConv: format_clock should replace percent-f with microseconds") {
+    std::string stdconv_path = "../luaconv/luaconv.so";
+    std::shared_ptr<ConverterPlugin> plugin = boost_dll_import<ConverterPlugin>(
+        stdconv_path,
+        "converter_plugin",
+        boost::dll::load_mode::append_decorations
+    );
+    std::shared_ptr<DataConverter> conv(plugin->getConverter("evaluate"));
+
+    conv->setArgs({"return format_clock(1234567, '%Y-%m-%dT%H:%M:%S.%fZ', false)"});
+
+    const ModbusRegisters input({});
+    MqttValue output = conv->toMqtt(input);
+
+    REQUIRE(output.getString() == "1970-01-01T00:00:01.234567Z");
+}
+
+TEST_CASE("LuaConv: format_clock should support custom format with percent-f") {
+    std::string stdconv_path = "../luaconv/luaconv.so";
+    std::shared_ptr<ConverterPlugin> plugin = boost_dll_import<ConverterPlugin>(
+        stdconv_path,
+        "converter_plugin",
+        boost::dll::load_mode::append_decorations
+    );
+    std::shared_ptr<DataConverter> conv(plugin->getConverter("evaluate"));
+
+    conv->setArgs({"return format_clock(1234567, '%Y/%m/%d %H:%M:%S.%f', false)"});
+
+    const ModbusRegisters input({});
+    MqttValue output = conv->toMqtt(input);
+
+    REQUIRE(output.getString() == "1970/01/01 00:00:01.234567");
+}
+
+TEST_CASE("LuaConv: format_clock should work without percent-f in format string") {
+    std::string stdconv_path = "../luaconv/luaconv.so";
+    std::shared_ptr<ConverterPlugin> plugin = boost_dll_import<ConverterPlugin>(
+        stdconv_path,
+        "converter_plugin",
+        boost::dll::load_mode::append_decorations
+    );
+    std::shared_ptr<DataConverter> conv(plugin->getConverter("evaluate"));
+
+    conv->setArgs({"return format_clock(1234567, '%Y-%m-%dT%H:%M:%SZ', false)"});
+
+    const ModbusRegisters input({});
+    MqttValue output = conv->toMqtt(input);
+
+    REQUIRE(output.getString() == "1970-01-01T00:00:01Z");
+}
+
+TEST_CASE("LuaConv: format_clock should format local time when local is true") {
+    std::string stdconv_path = "../luaconv/luaconv.so";
+    std::shared_ptr<ConverterPlugin> plugin = boost_dll_import<ConverterPlugin>(
+        stdconv_path,
+        "converter_plugin",
+        boost::dll::load_mode::append_decorations
+    );
+    std::shared_ptr<DataConverter> conv(plugin->getConverter("evaluate"));
+
+    conv->setArgs({"return format_clock(0, '%Y-%m-%dT%H:%M:%S.%f', true)"});
+
+    const ModbusRegisters input({});
+    MqttValue output = conv->toMqtt(input);
+
+    std::time_t t = 0;
+    std::tm tm{};
+#ifdef _WIN32
+    localtime_s(&tm, &t);
+#else
+    localtime_r(&t, &tm);
+#endif
+
+    char buffer[64];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S.000000", &tm);
+
+    REQUIRE(output.getString() == buffer);
+}
+
+TEST_CASE("LuaConv: format_clock should accept output of clock_usec") {
+    std::string stdconv_path = "../luaconv/luaconv.so";
+    std::shared_ptr<ConverterPlugin> plugin = boost_dll_import<ConverterPlugin>(
+        stdconv_path,
+        "converter_plugin",
+        boost::dll::load_mode::append_decorations
+    );
+    std::shared_ptr<DataConverter> conv(plugin->getConverter("evaluate"));
+
+    conv->setArgs({"return format_clock(clock_usec())"});
+
+    const ModbusRegisters input({});
+    MqttValue output = conv->toMqtt(input);
+
+    std::string s = output.getString();
+
+    REQUIRE(s.size() == 20);
+    REQUIRE(s[4] == '-');
+    REQUIRE(s[7] == '-');
+    REQUIRE(s[10] == 'T');
+    REQUIRE(s[13] == ':');
+    REQUIRE(s[16] == ':');
+    REQUIRE(s[19] == 'Z');
+}
+
+TEST_CASE("LuaConv: format_clock should format clock_usec with explicit microseconds format") {
+    std::string stdconv_path = "../luaconv/luaconv.so";
+    std::shared_ptr<ConverterPlugin> plugin = boost_dll_import<ConverterPlugin>(
+        stdconv_path,
+        "converter_plugin",
+        boost::dll::load_mode::append_decorations
+    );
+    std::shared_ptr<DataConverter> conv(plugin->getConverter("evaluate"));
+
+    conv->setArgs({"return format_clock(clock_usec(), '%Y-%m-%dT%H:%M:%S.%fZ', false)"});
+
+    const ModbusRegisters input({});
+    MqttValue output = conv->toMqtt(input);
+
+    std::string s = output.getString();
+
+    REQUIRE(s.size() == 27);
+    REQUIRE(s[4] == '-');
+    REQUIRE(s[7] == '-');
+    REQUIRE(s[10] == 'T');
+    REQUIRE(s[13] == ':');
+    REQUIRE(s[16] == ':');
+    REQUIRE(s[19] == '.');
+    REQUIRE(s[26] == 'Z');
+}
+
