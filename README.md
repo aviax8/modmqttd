@@ -261,7 +261,7 @@ Modbus network configuration parameters are listed below:
   * **watch_period** (optional, timespan, default=auto)
 
   The amount of time after which the connection should be reestablished if there has been no successful execution of a modbus command in this period. If not set in the configuration, then this value will be automatically set to twice the minimum refresh value for all topics on the given network, but no less than 10 seconds.
-  
+
 * **slaves** (optional)
   An optional slave list with modbus specific configuration like register groups to poll (see poll groups below) and timing constraints
 
@@ -350,7 +350,7 @@ The MQTT section contains broker definition and modbus register mappings. Mappin
 * **publish_mode** (string, optional, default on_change)
 
   A default mode for publishing MQTT values for all topics, that do not have their own `publish_mode` declared.
-  
+
   * **on_change**: publish new MQTT value only if it is different from the last published one.
   * **every_poll**: publish new MQTT value after every modbus register read.
   * **once**: publish MQTT value only once after the first successful read of modbus registers. You need to restart modmqttd to re-read already published value.
@@ -437,16 +437,16 @@ A list of topics where modbus values are published to MQTT broker and subscribed
 
 * **retain** (optional, default true)
 
-  Sets the [MQTT RETAIN](https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901104) flag for 
+  Sets the [MQTT RETAIN](https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901104) flag for
   all messages published for this topic. Changes state value updates in the following way:
 
   1. If retain = true:
       * state value is published immediately after initial poll
-      * just before the availability flag changes its value from 0 to 1, the current state value is published 
+      * just before the availability flag changes its value from 0 to 1, the current state value is published
 
   1. If retain = false:
 
-      When publish_mode is set to "every_poll" then the publishing behavior is the same as when `retain` flag 
+      When publish_mode is set to "every_poll" then the publishing behavior is the same as when `retain` flag
       is set to 'true'. The only difference is that all messages are published with the MQTT RETAIN flag set to false.
 
       If publish_mode is set to "on_change", then:
@@ -897,8 +897,8 @@ Register values are defined as `R0..Rn` variables.
   Usage: state, command
 
   Evaluates [exprtk expression](http://www.partow.net/programming/exprtk/) with:
-  
-  * up to 10 registers as variables R0-R9 variables when used in `state` section.
+
+  * up to 20 registers as variables R0-R19 variables when used in `state` section.
   * M0 as MQTT value when used in `commands` section
 
   The following custom functions for 32-bit numbers are supported in the expression.
@@ -1012,7 +1012,7 @@ class MyConverter : public DataConverter {
         virtual ConverterArgs getArgs() const {
             ConverterArgs ret;
             ret.add("shift", ConverterArgType::INT, "0");
-            return ret;        
+            return ret;
         }
 
         // Called by modmqttd to set coverter arguments.

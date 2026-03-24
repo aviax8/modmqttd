@@ -22,7 +22,7 @@ strvecToString(const std::vector<std::string>& elements, const char *const delim
 
 class ExprtkConverter : public DataConverter {
     public:
-        static const int MAX_REGISTERS = 10;
+        static const int MAX_REGISTERS = 20;
 
         ExprtkConverter() : mValues(MAX_REGISTERS, 0) {}
 
