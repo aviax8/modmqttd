@@ -8,6 +8,11 @@ include(git_version)
 project(modmqttd VERSION 0.0.0)
 get_version_from_git()
 
+option(USE_STATIC_RUNTIME "Build with static runtime libraries" ON)
+if(USE_STATIC_RUNTIME)
+    add_link_options(-static-libstdc++ -static-libgcc)
+endif()
+
 option(WITHOUT_TESTS "Do not build unit tests")
 set(build_unittests)
 if (WITHOUT_TESTS)
