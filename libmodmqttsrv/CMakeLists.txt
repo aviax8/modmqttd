@@ -3,7 +3,7 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 add_library(modmqttsrv
     SHARED
-    config.cpp 
+    config.cpp
     config.hpp
     conv_name_parser.cpp
     conv_name_parser.hpp
@@ -14,8 +14,8 @@ add_library(modmqttsrv
     dll_import.hpp
     logging.cpp
     logging.hpp
-    modbus_client.cpp 
-    modbus_client.hpp 
+    modbus_client.cpp
+    modbus_client.hpp
     modbus_context.cpp
     modbus_context.hpp
     modbus_executor.cpp
@@ -34,8 +34,8 @@ add_library(modmqttsrv
     modbus_types.hpp
     modbus_watchdog.cpp
     modbus_watchdog.hpp
-    modmqtt.cpp 
-    modmqtt.hpp 
+    modmqtt.cpp
+    modmqtt.hpp
     mosquitto.cpp
     mosquitto.hpp
     mqttclient.cpp
@@ -60,6 +60,18 @@ configure_file(
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/version.hpp.in
     ${CMAKE_CURRENT_BINARY_DIR}/version.hpp
+)
+
+target_link_libraries(modmqttsrv
+    PRIVATE
+        fmt::fmt
+        spdlog::spdlog
+        yaml-cpp::yaml-cpp
+        rapidjson
+        libmodbus::libmodbus
+        mosquitto::mosquitto
+    PUBLIC
+        atomic
 )
 
 target_include_directories (modmqttsrv PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})

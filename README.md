@@ -33,12 +33,10 @@ MQMGateway depends on [libmodbus](https://libmodbus.org/) and [Mosquitto](https:
 
 # License
 
-This software is dual-licensed:
+This software is licensed under the terms of [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.html) as Open Source project.
 
-* under the terms of [AGPL-3.0 license](https://www.gnu.org/licenses/agpl-3.0.html) as Open Source project
-* under commercial license
+The [upstream project](https://github.com/BlackZork/mqmgateway) offers a commercial-friendly license and support at http://mqmgateway.zork.pl.
 
-For a commercial-friendly license and support please see http://mqmgateway.zork.pl.
 
 # Third-party licenses
 
@@ -51,11 +49,43 @@ Cameron Desrochers. See license terms in [LICENSE.md](readerwriterqueue/LICENSE.
 
 # Installation
 
-## From sources
+## From sources (using [Conan](https://conan.io))
 
-1. `git clone https://github.com/BlackZork/mqmgateway.git`
+1. Register Rapdijson patch:
 
-   You can also use `branch=<tagname>` to clone specific release or download sources from [Releases page](https://github.com/BlackZork/mqmgateway/releases)
+    ```bash
+	conan export conan/recipes/rapidjson/ --user local --channel patched
+    ```
+
+1. Install dependencies (native compilation):
+
+    ```bash
+    conan install . --build=missing
+    ```
+
+1. Install dependencies (cross-compilation for RPi):
+
+    ```bash
+    cd ~
+    git clone https://github.com/tttapa/docker-arm-cross-toolchain.git
+    conan remote add tttapa-docker-arm-cross-toolchain ~/docker-arm-cross-toolchain
+    cd modmqttd
+    conan install . --build=missing -pr ~/docker-arm-cross-toolchain/profiles/armv6-rpi-linux-gnueabihf.conan
+    ```
+
+1. Configure and build project:
+
+    ```bash
+    cmake --preset conan-release --fresh
+    cmake --build --preset conan-release
+    ```
+
+
+## From sources (manual dependency installation)
+
+1. `git clone https://github.com/aviax8/mqmgateway.git`
+
+   You can also use `branch=<tagname>` to clone specific release or download sources from [Releases page](https://github.com/aviax8/mqmgateway/releases)
 
 2. Install dependencies:
    1. libspdlog

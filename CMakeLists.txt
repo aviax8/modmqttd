@@ -24,9 +24,27 @@ list(APPEND CMAKE_REQUIRED_LIBRARIES pthread)
 CHECK_SYMBOL_EXISTS(pthread_setname_np pthread.h HAVE_PTHREAD_SETNAME_NP)
 list(REMOVE_ITEM CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
 
-find_package(PkgConfig)
-pkg_check_modules(LIBMODBUS REQUIRED libmodbus)
-pkg_check_modules(MOSQUITTO REQUIRED libmosquitto)
+find_package(libmodbus QUIET)
+
+if(NOT libmodbus_FOUND)
+    # Fallback to pkg-config
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PC_LIBMODBUS REQUIRED IMPORTED_TARGET libmodbus)
+
+    add_library(libmodbus::libmodbus INTERFACE IMPORTED)
+    target_link_libraries(libmodbus::libmodbus INTERFACE PkgConfig::PC_LIBMODBUS)
+endif()
+
+find_package(mosquitto QUIET)
+
+if(NOT mosquitto_FOUND)
+    # Fallback to pkg-config
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(PC_MOSQUITTO REQUIRED IMPORTED_TARGET libmosquitto)
+
+    add_library(mosquitto::mosquitto INTERFACE IMPORTED)
+    target_link_libraries(mosquitto::mosquitto INTERFACE PkgConfig::PC_MOSQUITTO)
+endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -34,7 +52,7 @@ find_package(Threads REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(RapidJSON REQUIRED)
 find_package(spdlog REQUIRED)
-find_package(fmt REQUIRED) 
+find_package(fmt REQUIRED)
 
 add_compile_definitions(SPDLOG_COMPILED_LIB)
 
@@ -57,12 +75,12 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 add_subdirectory(stdconv)
 add_dependencies(modmqttd stdconv)
 if (NOT WITHOUT_TESTS)
-add_dependencies(tests stdconv)
+    add_dependencies(tests stdconv)
 endif()
 
 if (EXPRTK_INCLUDE_DIR)
     include_directories(${EXPRTK_INCLUDE_DIR})
-    add_subdirectory(exprconv)    
+    add_subdirectory(exprconv)
     add_dependencies(modmqttd exprconv)
 
     if (NOT WITHOUT_TESTS)
@@ -80,4 +98,4 @@ install (DIRECTORY "${PROJECT_SOURCE_DIR}/libmodmqttconv" DESTINATION include FI
 
 install(TARGETS stdconv DESTINATION lib/modmqttd)
 
-install(FILES modmqttd.service DESTINATION lib/systemd/system) 
+install(FILES modmqttd.service DESTINATION lib/systemd/system)

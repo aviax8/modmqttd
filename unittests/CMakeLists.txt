@@ -87,13 +87,13 @@ add_executable(tests
 
 target_link_libraries(tests
     modmqttsrv
-    ${MOSQUITTO_LIBRARIES}
-    Catch2::Catch2
-    yaml-cpp
-    spdlog::spdlog
     fmt::fmt
-    ${LIBMODBUS_LIBRARIES}
+    spdlog::spdlog
+    yaml-cpp::yaml-cpp
+    rapidjson
     Threads::Threads
-    -lpthread
+    libmodbus::libmodbus
+    mosquitto::mosquitto
+    Catch2::Catch2
     ${CMAKE_DL_LIBS}
 )
