@@ -27,6 +27,7 @@ add_executable(tests
     exprconv_tests.cpp
     exprconv_uint32_tests.cpp
     exprconv_write_tests.cpp
+    luaconv_tests.cpp
     modbus_config_tests.cpp
     modbus_executor_tests.cpp
     modbus_executor_single_delay_tests.cpp
@@ -44,6 +45,7 @@ add_executable(tests
     mqtt_expr_conv_tests.cpp
     mqtt_config_tests.cpp
     mqtt_json_conv_tests.cpp
+    mqtt_lua_conv_tests.cpp
     mqtt_named_list_conv_tests.cpp
     mqtt_named_list_tests.cpp
     mqtt_named_scalar_conv_tests.cpp

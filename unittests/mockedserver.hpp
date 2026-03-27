@@ -100,6 +100,7 @@ class MockedModMqttServerThread : public ModMqttServerThread {
             //allow to find converter dlls when cwd is in binary directory
             mServer.addConverterPath("../stdconv");
             mServer.addConverterPath("../exprconv");
+            mServer.addConverterPath("../luaconv");
         };
 
     void waitForSubscription(const char* topic, std::chrono::milliseconds timeout = timing::defaultWait) {

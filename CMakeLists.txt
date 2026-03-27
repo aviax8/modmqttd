@@ -77,6 +77,13 @@ SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COMPILE_FLAGS}")
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib/modmqttd")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+find_package(sol2)
+add_subdirectory(luaconv)
+add_dependencies(modmqttd luaconv)
+if (NOT WITHOUT_TESTS)
+    add_dependencies(tests luaconv)
+endif()
+
 add_subdirectory(stdconv)
 add_dependencies(modmqttd stdconv)
 if (NOT WITHOUT_TESTS)
@@ -101,6 +108,7 @@ install (TARGETS modmqttd DESTINATION bin)
 install (TARGETS modmqttsrv DESTINATION lib)
 install (DIRECTORY "${PROJECT_SOURCE_DIR}/libmodmqttconv" DESTINATION include FILES_MATCHING PATTERN "*.hpp")
 
+install(TARGETS luaconv DESTINATION lib/modmqttd)
 install(TARGETS stdconv DESTINATION lib/modmqttd)
 
 install(FILES modmqttd.service DESTINATION lib/systemd/system)

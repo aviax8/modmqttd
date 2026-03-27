@@ -24,6 +24,7 @@ Main features:
   * single register value to MQTT converters
   * multiple registers values to single MQTT value converters
   * support for [exprtk](https://github.com/ArashPartow/exprtk) expressions language when converting data
+  * support for [Lua](https://www.lua.org) expressions language when converting data
   * support for custom conversion plugins
   * support for conversion in both directions
 * Fast modbus frequency polling, configurable per network, per MQTT object and per register
@@ -95,7 +96,8 @@ Cameron Desrochers. See license terms in [LICENSE.md](readerwriterqueue/LICENSE.
    5. rapidJSON
    6. libc headers (recommended, for pthreads support)
    7. exprtk (optional, for exprtk expressions language support in YAML declarations)
-   8. Catch2 v3 (optional, for unit tests)
+   8. lua/sol2 Lua and the binding library
+   9. Catch2 v3 (optional, for unit tests)
 
 3. Configure and build project:
 
@@ -892,21 +894,24 @@ When an availability value should be computed from multiple registers:
     available_value: 65537
 ```
 
-
 ### Exprtk converter.
 
-Exprtk converter allows using exprtk expression language to convert register data to MQTT value.
-Register values are defined as `R0..Rn` variables.
+Exprtk converter allows using exprtk expression language to convert register data to MQTT value for states, or MQTT payload to register(s) for commands.
 
 * **evaluate(expression, precision=-1, write_as="", low_first=false)**
 
   Usage: state, command
 
-  Evaluates [exprtk expression](http://www.partow.net/programming/exprtk/) with:
+  Arguments:
+  * [exprtk expression](http://www.partow.net/programming/exprtk/) (required) with:
+      * up to 20 registers as variables `R0..R19` when used in `state` section
+      * `M0` as MQTT value when used in `commands` section
+  * `precision` (optional, ignored for _string_ and _boolean_ return types) - number result will be rounded to this decimal precision
+  * `write_as` - the name of some of the number-conversion functions listed below that will be used to store the value of an expression in Modbus registers during writing.
 
-  * up to 20 registers as variables R0-R19 variables when used in `state` section.
-  * M0 as MQTT value when used in `commands` section
+  * `low_first` - if true, `ABCD` int32/float value will be stored as `R0`=`CD`, `R1`=`BA`
 
+  Custom functions:
   The following custom functions for 32-bit numbers are supported in the expression.
   `ABCD` means a number composed of the byte array `[A, B, C, D]`,
   where `A` is the most significant byte (MSB) and `D` is the least-significant byte (LSB).
@@ -931,6 +936,37 @@ Register values are defined as `R0..Rn` variables.
 
   All of the above functions can be used as `write_as` helper to store an expression value in modbus registers during writing.
   Additionally, the `low_first` argument can be used to store `ABCD` int32/float value as `RO`=`CD`, `R1`=`BA`.
+
+### Lua converter.
+
+Lua converter allows using Lua expression language to convert register data to MQTT value for states, or MQTT payload to register(s) for commands.
+
+* **evaluate(expression, precision=-1)**
+
+    Usage: state, command
+
+    Arguments:
+    * [Lua expression](https://www.lua.org) (required) with:
+        * up to 20 registers as variables `R0..R19` when used in `state` section
+        * `M0` as MQTT value when used in `commands` section
+    * `precision` (optional, ignored for _string_ and _boolean_ return types) - number result will be rounded to this decimal precision
+
+    Notes:
+    * expression must return _numeric_, _boolean_ or _string_ value
+    * e.g. `converter: lua.evaluate("return string.format('%04X', R0)")`
+
+    Custom functions:
+    The same custom functions for 32-bit numbers described in Exprtk converter are supported in the Lua expression.
+    Moreover the following additional custom functions are supported in the expression.
+    * `bit_positions(uint64_number, lsb_base)`: Return a comma-separated list of bit positions set to 1 in uint64_number.
+        * e.g. `converter: lua.evaluate("return bit_positions(6)")` returns "1,2"
+        * optional `lsb_base` defines LSB base added to bit positions, `converter: lua.evaluate("return bit_positions(6, 2)")` returns "3,4"
+    * `clock_usec()`: Return current system clock as microseconds since Unix epoch (UTC).
+    * `format_clock(usec_since_epoch, format, local)`: Formats epoch microseconds into string.
+        * `usec_since_epoch` Time since Unix epoch in microseconds (UTC base)
+        * `format` Format string (strftime compatible + %f for microseconds, default is `"%Y-%m-%dT%H:%M:%SZ"`)
+        * `local` If true, format as local time; otherwise UTC time (default is `false`)
+        * example: `format_clock(clock_usec(), "%Y-%m-%dT%H:%M:%S.%f", true)`
 
 #### Examples
 
