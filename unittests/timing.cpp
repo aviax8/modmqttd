@@ -18,7 +18,7 @@ timing::init(double factor) {
     if (factor == 0) {
         #ifdef NDEBUG
             sFactor = 10;
-        else
+        #else
             sFactor = 1;
         #endif
 
