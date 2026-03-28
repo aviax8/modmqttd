@@ -153,6 +153,12 @@ ModbusExecutor::pollRegisters(RegisterPoll& reg, bool forceSend) {
     try {
         std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
+        // set mLastRead regardless if modbus command was successful or not
+        // ModbusScheduler should not reschedule again after failed read
+        // This will cause endless readModbusRegisters if register always
+        // returns read error
+        reg.mLastRead = start;
+
         std::vector<uint16_t> newValues(mModbus->readModbusRegisters(reg.mSlaveId, reg));
         reg.mLastReadOk = true;
 
@@ -187,11 +193,8 @@ ModbusExecutor::pollRegisters(RegisterPoll& reg, bool forceSend) {
     } catch (const ModbusReadException& ex) {
         handleRegisterReadError(reg, ex.what());
     }
-    // set mLastRead regardless if modbus command was successful or not
-    // ModbusScheduler should not reschedule again after failed read
-    // This will cause endless readModbusRegisters if register always
-    // returns read error
-    mLastCommandTime = reg.mLastRead = std::chrono::steady_clock::now();
+
+    mLastCommandTime = std::chrono::steady_clock::now();
 };
 
 void
